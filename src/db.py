@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 from src.config import DB_NAME
 
-DATA_BASE_URL = f"aiosqlite://{DB_NAME}"
+DATA_BASE_URL = f"aiosqlite:///{DB_NAME}"
 
 
 class Base(DeclarativeBase, AsyncAttrs):
