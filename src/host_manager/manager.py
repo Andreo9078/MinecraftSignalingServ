@@ -1,4 +1,5 @@
 import json
+import os
 from threading import Lock
 from typing import Optional
 
@@ -27,6 +28,10 @@ class HostManager:
         with file_lock:
             with open(self.file_path, "w") as f:
                 f.write(json.dumps(host.model_dump(mode="json")))
+
+    def clear_host_from_file(self) -> None:
+        if os.path.exists(self.file_path):
+            os.remove(self.file_path)
 
 
 def get_host_manager() -> HostManager:

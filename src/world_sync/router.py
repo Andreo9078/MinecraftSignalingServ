@@ -2,18 +2,39 @@ import json
 import os
 import shutil
 from pathlib import Path
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from starlette.responses import FileResponse
 
+from src.auth.manager import current_user
+from src.auth.models import User
 from src.config import WORLD_STORAGE_PATH
+from src.host_manager.manager import HostManager, get_host_manager
 from src.utils import generate_world_manifest
 
-router = APIRouter()
+
+async def current_user_is_host(
+    curr_user: Annotated[User, Depends(current_user)],
+    manager: Annotated[HostManager, Depends(get_host_manager)]
+) -> None:
+    host = manager.read_host_from_file()
+    if host is None:
+        raise HTTPException(400, detail="You are not a host")
+
+    if curr_user.id != host.user_id:
+        raise HTTPException(400, detail="You are not a host")
+
+
+router = APIRouter(
+    dependencies=[Depends(current_user_is_host)],
+)
 
 
 @router.post("/world/files/{file_path:path}")
-async def upload_world_file(file_path: str, file: UploadFile = File(...)):
+async def upload_world_file(
+    file_path: str, file: UploadFile = File(...)
+):
     """Сохраняет файл на сервере."""
     file_full_path = WORLD_STORAGE_PATH / file_path
     os.makedirs(file_full_path.parent, exist_ok=True)
