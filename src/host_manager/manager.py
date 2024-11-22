@@ -25,6 +25,8 @@ class HostManager:
         return None
 
     def write_host_to_file(self, host: Host) -> None:
+        if os.path.exists(self.file_path):
+            raise FileExistsError
         with file_lock:
             with open(self.file_path, "w") as f:
                 f.write(json.dumps(host.model_dump(mode="json")))

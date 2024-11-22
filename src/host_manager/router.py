@@ -38,10 +38,16 @@ async def create_host(
         port=create_host.port,
         user_id=curr_user.id,
     )
-    manager.write_host_to_file(host)
+    try:
+        manager.write_host_to_file(host)
+    except FileExistsError as e:
+        host = manager.read_host_from_file()
+        raise HTTPException(
+            400, f"Host already exists: {host.model_dump()}"
+        )
     background_tasks.add_task(clear_host, manager, 600)
 
-    return {"message": "host created"}
+    return {"message": "You are a host on next 10 min"}
 
 
 @router.get("/clear_host")
