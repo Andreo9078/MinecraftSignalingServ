@@ -42,9 +42,11 @@ async def create_host(
         manager.write_host_to_file(host)
     except FileExistsError as e:
         host = manager.read_host_from_file()
-        raise HTTPException(
-            400, f"Host already exists: {host.model_dump()}"
-        )
+        if host.user_id != curr_user.id:
+            raise HTTPException(
+                400, f"Host already exists: {host.model_dump()}"
+            )
+
     background_tasks.add_task(clear_host, manager, 600)
 
     return {"message": "You are a host on next 10 min"}
